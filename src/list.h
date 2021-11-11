@@ -12,12 +12,14 @@ const size_t LST_DEFAULT_CAPACITY = 100;
 struct node_t {
     elem_t data;
     size_t next;
+    size_t prev;
 };
 
 struct List {
     node_t *nodes;
     size_t head;
     size_t tail;
+    size_t free;
     size_t capacity;
 };
 
@@ -30,10 +32,6 @@ enum ListError : int {
 int ListCtor(List *list, size_t capacity=LST_DEFAULT_CAPACITY);
 
 void ListDtor(List *list);
-
-size_t ListFindFree(List *list);
-
-size_t ListFindPrev(List *list, size_t pos);
 
 int ListInsertFront(List *list, elem_t value);
 

@@ -2,6 +2,30 @@
 
 #include "list.h"
 
+void printList(List *list, size_t size) {
+    printf("Head : %zu, Tail: %zu, Free: %zu\n", list->head, list->tail, list->free);
+    printf("Index : ");
+    for (size_t i = 0; i < size; i++) {
+        printf("%zu ", i);
+    }
+    printf("\n");
+    printf("Data : ");
+    for (size_t i = 0; i < size; i++) {
+        printf("%lld ", list->nodes[i].data);
+    }
+    printf("\n");
+    printf("Next : ");
+    for (size_t i = 0; i < size; i++) {
+        printf("%zu ", list->nodes[i].next);
+    }
+    printf("\n");
+    printf("Prev : ");
+    for (size_t i = 0; i < size; i++) {
+        printf("%zu ", list->nodes[i].prev);
+    }
+    printf("\n");
+}
+
 int main() {
     List lst = {};
 
@@ -20,6 +44,8 @@ int main() {
                 cur, lst.nodes[cur].data, lst.nodes[cur].next);
         cur = lst.nodes[cur].next;
     }
+    printList(&lst, 10);
+    
 
     ListDtor(&lst);
 }
