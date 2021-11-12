@@ -20,6 +20,7 @@ struct List {
     size_t head;
     size_t tail;
     size_t free;
+    size_t size;
     size_t capacity;
 };
 
@@ -32,6 +33,8 @@ enum ListError : int {
 int ListCtor(List *list, size_t capacity=LST_DEFAULT_CAPACITY);
 
 void ListDtor(List *list);
+
+size_t ListLogicalToPhysicalIdx_DONT_CALL_SLOW_ASF(List *list, size_t idx);
 
 int ListInsertFront(List *list, elem_t value);
 

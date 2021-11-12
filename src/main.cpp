@@ -45,6 +45,10 @@ int main() {
         cur = lst.nodes[cur].next;
     }
     printList(&lst, 10);
+
+    for (size_t i = 0; i < lst.size; i++) {
+        printf("val : %lld\n", lst.nodes[ListLogicalToPhysicalIdx_DONT_CALL_SLOW_ASF(&lst, i)].data);
+    } 
     
 
     ListDtor(&lst);

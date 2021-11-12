@@ -10,7 +10,7 @@ int ListCtor(List *list, size_t capacity) {
     assert(list->head == 0);
     assert(list->tail == 0);
 
-    list->nodes = (node_t *)calloc(capacity, sizeof(node_t));
+    list->nodes = (node_t *)calloc((capacity + 1), sizeof(node_t));
     if (!list->nodes) {
         perror("Error allocating memory for the list");
         return ERR_NOMEM; 
@@ -28,6 +28,7 @@ int ListCtor(List *list, size_t capacity) {
     list->head = LST_SIZE_POISON; 
     list->tail = LST_SIZE_POISON; 
     list->free = 1;
+    list->size = 0;
     list->capacity = capacity;
     return 0;
 }
@@ -40,7 +41,23 @@ void ListDtor(List *list) {
     list->head = LST_SIZE_POISON;
     list->tail = LST_SIZE_POISON;
     list->free = LST_SIZE_POISON;
+    list->size = LST_SIZE_POISON;
     list->capacity = LST_SIZE_POISON;
+}
+
+size_t ListLogicalToPhysicalIdx_DONT_CALL_SLOW_ASF(List *list, size_t idx) {
+    assert(list);
+    assert(list->nodes);
+
+    if (idx >= list->size) {
+        return LST_SIZE_POISON;
+    }
+
+    size_t cur = list->head;
+    while (idx--) {
+        cur = list->nodes[cur].next;
+    }
+    return cur;
 }
 
 int ListInsertFront(List *list, elem_t value) {
@@ -63,6 +80,7 @@ int ListInsertFront(List *list, elem_t value) {
     }
     list->head = list->free;
     list->free = nextFree;
+    list->size++;
     return 0;
 }
 
@@ -87,6 +105,7 @@ int ListInsertBack(List *list, elem_t value) {
     }
     list->tail = list->free;
     list->free = nextFree;
+    list->size++;
     return 0;
 }
 
@@ -113,6 +132,7 @@ int ListInsertAfter(List *list, size_t pos, elem_t value) {
         list->nodes[pos].next = list->free;
         list->free = nextFree;
     }
+    list->size++;
 
     return 0;
 }
@@ -145,6 +165,7 @@ int ListRemove(List *list, size_t pos) {
 
     list->nodes[pos].next = list->free;
     list->free = pos;
+    list->size--;
 
     return 0;
 }
