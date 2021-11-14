@@ -4,10 +4,19 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifndef __FUNCTION_NAME__
+    #ifdef WIN32   //WINDOWS
+        #define __FUNCTION_NAME__   __FUNCTION__  
+    #else          //*NIX
+        #define __FUNCTION_NAME__   __func__ 
+    #endif
+#endif
+
 typedef long long elem_t;
 
+static const char *typeName = "long long";
+
 const size_t LST_SIZE_POISON = SIZE_MAX;
-const size_t LST_DEFAULT_CAPACITY = 100;
 
 struct node_t {
     elem_t data;
@@ -23,15 +32,30 @@ struct List {
     size_t size;
     size_t capacity;
     bool isSorted;
+
+    const char *ctorCallFuncName; /**< Function that called the stack constructor */
+    const char *ctorCallFile; /**< File of the constructor call */
+    int ctorCallLine; /**< Line of the constructor call */
+
+    size_t dumpNum;
 };
 
 enum ListError : int {
     ERR_NOMEM = 1,
     ERR_OVFLOW = 2,
     ERR_INV_POS = 3,
+    ERR_DOT_FILE_OPN = 4,
+    ERR_FILE_CLS = 5,
 };
 
-int ListCtor(List *list, size_t capacity=LST_DEFAULT_CAPACITY);
+//! Encapsulates info about function call for debug
+struct callInfo {
+    const char *funcName; /**< Name of the calling function */
+    const char *file; /**< File where the function call happened */
+    int line; /**< Line of the function call in the file */
+};
+
+int ListCtor_(List *list, size_t capacity, callInfo info);
 
 void ListDtor(List *list);
 
@@ -48,5 +72,25 @@ int ListInsertBack(List *list, elem_t value);
 int ListInsertAfter(List *list, size_t pos, elem_t value);
 
 int ListRemove(List *list, size_t pos);
+
+int ListDump_(List *list, const char *reason, callInfo info);
+
+#define ListCtor(list, capacity)    \
+do {                                           \
+    callInfo inf = {};                         \
+    inf.funcName = __FUNCTION_NAME__;          \
+    inf.file = __FILE__;                       \
+    inf.line = __LINE__;                       \
+    ListCtor_(list, capacity, inf); \
+} while (0)
+
+#define ListDump(list, reason)      \
+do {                                           \
+    callInfo inf = {};                         \
+    inf.funcName = __FUNCTION_NAME__;          \
+    inf.file = __FILE__;                       \
+    inf.line = __LINE__;                       \
+    ListDump_(list, reason, inf);   \
+} while (0)
 
 #endif

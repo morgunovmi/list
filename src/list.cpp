@@ -4,7 +4,77 @@
 
 #include "list.h"
 
-int ListCtor(List *list, size_t capacity) {
+int ListDump_(List *list, const char *reason, callInfo info) {
+    assert(list);
+    assert(list->nodes);
+
+    system("mkdir dumps\n");
+
+    char dotFileName[64] = "";
+    sprintf(dotFileName, "dumps/dump%zu.dot", list->dumpNum);
+
+    FILE *dotFile = fopen(dotFileName, "w");
+    if (!dotFile) {
+        perror("Error opening dot file for dump");
+        return ERR_DOT_FILE_OPN;
+    }
+
+    fprintf(dotFile, "digraph list{\n"
+                    "{\nrankdir=LR;\n"
+                    "node[shape=plaintext];\nedge[color=white]\n"
+                     "\"List<%s>[%p]\n dumped from %s() at %s (%d)\n\n", 
+                             typeName, (void *)list, info.funcName,
+							 info.file, info.line);
+
+    fprintf(dotFile, "Constructed in %s() at %s (%d)\n"
+                             "Dump reason : %s\"\n}\n",
+                             list->ctorCallFuncName,
+							 list->ctorCallFile, list->ctorCallLine, reason);
+
+    fprintf(dotFile, "data [shape=record, label=\"{nodes | head | tail | free | size |"
+            "capacity | isSorted } | { %p | <head> %zu | <tail> %zu | %zu | %zu | %zu | %d }\"];",
+            (void *)list->nodes, list->head, list->tail, list->free, list->size,
+            list->capacity, list->isSorted);
+
+    for (size_t i = 0; i < list->capacity; i++) {
+        fprintf(dotFile, "node%zu [shape=record, label=\"{data\\n%lld |"
+                "index\\n%zu} | next\\n%zu | prev\\n%zu\"];", i, 
+                list->nodes[i].data, i, list->nodes[i].next, list->nodes[i].prev);
+    }
+    fprintf(dotFile, "\n{\nedge[color=white];\n");
+    for (size_t i = 0; i < list->capacity - 1; i++) {
+        fprintf(dotFile, "node%zu -> node%zu;\n", i, i+1); 
+    }
+    fprintf(dotFile, "}\n");
+
+    fprintf(dotFile, "data:<head> -> node%zu[color=\"green\", label=\"head\"];\n", list->head);
+    fprintf(dotFile, "data:<tail> -> node%zu[color=\"red\", label=\"tail\"];\n", list->tail);
+
+    for (size_t i = 1; i < list->size; i++) {
+        fprintf(dotFile, "node%zu -> node%zu[label=\"next\"];\n", i, list->nodes[i].next); 
+        fprintf(dotFile, "node%zu -> node%zu[label=\"prev\"];\n", i, list->nodes[i].prev); 
+    }
+    for (size_t i = list->size; i < list->capacity; i++) {
+        fprintf(dotFile, "node%zu -> node%zu[label=\"next\"];\n", i, list->nodes[i].next); 
+    }
+
+    fprintf(dotFile, "}\n");
+    if (fclose(dotFile) == -1) {
+        perror("Error closing dot file");
+        return ERR_FILE_CLS;
+    }
+
+    char command[128] = "";
+    sprintf(command, "dot -Tjpg %s -o dumps/dump%zu.jpg", dotFileName, list->dumpNum);
+    system(command);
+    sprintf(command, "rm %s\n", dotFileName);
+    system(command);
+    list->dumpNum++;
+
+    return 0;
+}
+
+int ListCtor_(List *list, size_t capacity, callInfo info) {
     assert(list);
     assert(list->nodes == nullptr);
     assert(list->head == 0);
@@ -30,6 +100,12 @@ int ListCtor(List *list, size_t capacity) {
     list->free = 1;
     list->size = 0;
     list->capacity = capacity;
+
+    list->ctorCallFuncName = info.funcName;
+    list->ctorCallFile = info.file;
+    list->ctorCallLine = info.line; 
+
+    list->dumpNum = 0;
     return 0;
 }
 
@@ -98,10 +174,10 @@ int ListResize(List *list, size_t newCap) {
         return ERR_NOMEM;
     }
 
-    list->free = list->capacity + 1;
-    newNodes[list->free].next = list->capacity + 2;
-    size_t i = list->capacity + 2;
-    for (; i < newCap; i++) {
+    list->free = list->capacity;
+    newNodes[list->free].next = list->capacity + 1;
+    size_t i = list->capacity + 1;
+    for (; i < newCap - 1; i++) {
         newNodes[i].data = 0;
         newNodes[i].prev = LST_SIZE_POISON;
         newNodes[i].next = i + 1;

@@ -64,6 +64,7 @@ int main() {
     } 
 
     printList(&lst, lst.capacity);
+    ListDump(&lst, "main");
 
     ListDtor(&lst);
 }
