@@ -22,6 +22,7 @@ struct List {
     size_t free;
     size_t size;
     size_t capacity;
+    bool isSorted;
 };
 
 enum ListError : int {
@@ -33,6 +34,10 @@ enum ListError : int {
 int ListCtor(List *list, size_t capacity=LST_DEFAULT_CAPACITY);
 
 void ListDtor(List *list);
+
+int ListSort_VERY_SLOWWWWWWWWWWWWWWWWWW(List *list);
+
+int ListResize(List *list, size_t newCap);
 
 size_t ListLogicalToPhysicalIdx_DONT_CALL_SLOW_ASF(List *list, size_t idx);
 

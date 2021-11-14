@@ -49,7 +49,21 @@ int main() {
     for (size_t i = 0; i < lst.size; i++) {
         printf("val : %lld\n", lst.nodes[ListLogicalToPhysicalIdx_DONT_CALL_SLOW_ASF(&lst, i)].data);
     } 
-    
+
+    ListRemove(&lst, 3);
+    ListRemove(&lst, 6);
+    printList(&lst, 10);
+    ListSort_VERY_SLOWWWWWWWWWWWWWWWWWW(&lst);
+
+    printList(&lst, 10);
+
+    for (long long i = 10; i < 25; i++) {
+        ListInsertBack(&lst, i);
+        printf("Inserting %lld in the back, head : %zu, tail %zu\n", i,
+                lst.head, lst.tail);
+    } 
+
+    printList(&lst, lst.capacity);
 
     ListDtor(&lst);
 }
