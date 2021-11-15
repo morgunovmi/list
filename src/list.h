@@ -46,6 +46,14 @@ enum ListError : int {
     ERR_INV_POS = 3,
     ERR_DOT_FILE_OPN = 4,
     ERR_FILE_CLS = 5,
+    ERR_NULL = 6,
+    ERR_NULL_ND = 7,
+    ERR_CAP_OVERFL = 8,
+    ERR_INV_SIZE = 9,
+    ERR_INV_ZERO = 10,
+    ERR_INV_HEAD = 11,
+    ERR_INV_TAIL = 12,
+    ERR_INV_NEXT = 13,
 };
 
 //! Encapsulates info about function call for debug
@@ -74,6 +82,17 @@ int ListInsertAfter(List *list, size_t pos, elem_t value);
 int ListRemove(List *list, size_t pos);
 
 int ListDump_(List *list, const char *reason, callInfo info);
+
+int ListError(List *list);
+
+#define ASSERT_OK(list)                            \
+    do {                                            \
+        int ret = ListError(list);                \
+        if (ret != 0) {                             \
+            ListDump(list, "ASSERT_OK failed");   \
+            assert(!"Invariant failure");           \
+        }                                           \
+    } while (0)
 
 #define ListCtor(list, capacity)    \
 do {                                           \

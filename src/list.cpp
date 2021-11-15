@@ -4,6 +4,43 @@
 
 #include "list.h"
 
+int ListError(List *list) {
+    if (!list) {
+        return ERR_NULL;
+    } if (!list->nodes) {
+        return ERR_NULL_ND;
+    }
+    if (list->size > list->capacity) {
+        return ERR_CAP_OVERFL;
+    }
+    if (list->size == LST_SIZE_POISON || list->capacity == LST_SIZE_POISON) {
+        return ERR_INV_SIZE;
+    }
+    if (list->nodes[0].next != 0 || list->nodes[0].prev != 0) {
+        return ERR_INV_ZERO;
+    }
+    for (size_t i = 1; i < list->capacity + 1; i++) {
+        if (list->nodes[i].next == LST_SIZE_POISON) {
+            return ERR_INV_NEXT;
+        }
+        if (list->nodes[i].prev == 0 && i != list->head) {
+            return ERR_INV_HEAD;
+        }
+        if (list->nodes[i].next == 0 && i != list->tail
+            && list->nodes[i].prev != LST_SIZE_POISON) {
+            return ERR_INV_TAIL;
+        }
+        if (i == list->head && list->nodes[i].prev != 0) {
+            return ERR_INV_HEAD;
+        }
+        if (i == list->tail && list->nodes[i].next != 0) {
+            return ERR_INV_TAIL;
+        }
+    } 
+
+    return 0;
+}
+
 int ListDump_(List *list, const char *reason, callInfo info) {
     assert(list);
     assert(list->nodes);
@@ -19,12 +56,19 @@ int ListDump_(List *list, const char *reason, callInfo info) {
         return ERR_DOT_FILE_OPN;
     }
 
+    int errCode = ListError(list);
     fprintf(dotFile, "digraph list{\n"
                     "{\nrankdir=LR;\n"
                     "node[shape=plaintext];\nedge[color=white]\n"
                      "\"List<%s>[%p]\n dumped from %s() at %s (%d)\n\n", 
                              typeName, (void *)list, info.funcName,
 							 info.file, info.line);
+
+    if (errCode == 0) {
+        fprintf(dotFile, "ok ");
+    } else {
+        fprintf(dotFile, "Error %d ", errCode);
+    }
 
     fprintf(dotFile, "Constructed in %s() at %s (%d)\n"
                              "Dump reason : %s\"\n}\n",
@@ -106,12 +150,13 @@ int ListCtor_(List *list, size_t capacity, callInfo info) {
     list->ctorCallLine = info.line; 
 
     list->dumpNum = 0;
+
+    ASSERT_OK(list);
     return 0;
 }
 
 void ListDtor(List *list) {
-    assert(list);
-    assert(list->nodes);
+    ASSERT_OK(list);
 
     free(list->nodes);
     list->head = LST_SIZE_POISON;
@@ -122,8 +167,7 @@ void ListDtor(List *list) {
 }
 
 int ListSort_VERY_SLOWWWWWWWWWWWWWWWWWW(List *list) {
-    assert(list);
-    assert(list->nodes);
+    ASSERT_OK(list);
 
     node_t *newNodes = (node_t *)calloc(list->capacity + 1, sizeof(node_t));
     if (!newNodes) {
@@ -158,12 +202,14 @@ int ListSort_VERY_SLOWWWWWWWWWWWWWWWWWW(List *list) {
 
     list->isSorted = true;
 
+    ASSERT_OK(list);
+
     return 0;
 }
 
 int ListResize(List *list, size_t newCap) {
-    assert(list);
-    assert(list->nodes);
+    ASSERT_OK(list);
+
     printf("resizing to %zu\n", newCap);
     printf("Tail : %zu\n", list->tail);
 
@@ -192,12 +238,12 @@ int ListResize(List *list, size_t newCap) {
     printf("Tail end : %zu\n", list->tail);
     printf("List free : %zu\n", list->free);
 
+    ASSERT_OK(list);
     return 0;
 }
 
 size_t ListLogicalToPhysicalIdx_DONT_CALL_SLOW_ASF(List *list, size_t idx) {
-    assert(list);
-    assert(list->nodes);
+    ASSERT_OK(list);
 
     if (idx >= list->size) {
         return LST_SIZE_POISON;
@@ -211,12 +257,13 @@ size_t ListLogicalToPhysicalIdx_DONT_CALL_SLOW_ASF(List *list, size_t idx) {
     while (idx--) {
         cur = list->nodes[cur].next;
     }
+
+    ASSERT_OK(list);
     return cur;
 }
 
 int ListInsertFront(List *list, elem_t value) {
-    assert(list);
-    assert(list->nodes);
+    ASSERT_OK(list);
 
     if (list->free == 0) {
         if (ListResize(list, list->capacity * 2) != 0) {
@@ -237,12 +284,13 @@ int ListInsertFront(List *list, elem_t value) {
     list->head = list->free;
     list->free = nextFree;
     list->size++;
+
+    ASSERT_OK(list);
     return 0;
 }
 
 int ListInsertBack(List *list, elem_t value) {
-    assert(list);
-    assert(list->nodes);
+    ASSERT_OK(list);
 
     if (list->free == 0) {
         if (ListResize(list, list->capacity * 2) != 0) {
@@ -264,12 +312,13 @@ int ListInsertBack(List *list, elem_t value) {
     list->tail = list->free;
     list->free = nextFree;
     list->size++;
+
+    ASSERT_OK(list);
     return 0;
 }
 
 int ListInsertAfter(List *list, size_t pos, elem_t value) {
-    assert(list);
-    assert(list->nodes);
+    ASSERT_OK(list);
 
     if (pos >= list->capacity || list->nodes[pos].prev == LST_SIZE_POISON) {
         return ERR_INV_POS;
@@ -294,12 +343,12 @@ int ListInsertAfter(List *list, size_t pos, elem_t value) {
     }
     list->size++;
 
+    ASSERT_OK(list);
     return 0;
 }
 
 int ListRemove(List *list, size_t pos) {
-    assert(list);
-    assert(list->nodes);
+    ASSERT_OK(list);
 
     if (pos == 0 || 
         pos >= list->capacity || 
@@ -327,5 +376,6 @@ int ListRemove(List *list, size_t pos) {
     list->free = pos;
     list->size--;
 
+    ASSERT_OK(list);
     return 0;
 }
