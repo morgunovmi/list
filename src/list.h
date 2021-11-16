@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #ifndef __FUNCTION_NAME__
     #ifdef WIN32   //WINDOWS
@@ -11,6 +12,11 @@
         #define __FUNCTION_NAME__   __func__ 
     #endif
 #endif
+
+#define PRINT_ERROR(...) {                                                                                  \
+    fprintf(stderr, __VA_ARGS__);                                                                           \
+    fprintf(stderr, "file \"%s\", line %d, function \"%s()\"\n", __FILE__, __LINE__, __FUNCTION_NAME__);  \
+}                                                                                                           \
 
 typedef long long elem_t;
 
@@ -73,9 +79,13 @@ int ListResize(List *list, size_t newCap);
 
 size_t ListLogicalToPhysicalIdx_DONT_CALL_SLOW_ASF(List *list, size_t idx);
 
+size_t ListFindElem_SLOWWOLSSLOW(List *list, elem_t value);
+
 int ListInsertFront(List *list, elem_t value);
 
 int ListInsertBack(List *list, elem_t value);
+
+int ListInsertBefore(List *list, size_t pos, elem_t value);
 
 int ListInsertAfter(List *list, size_t pos, elem_t value);
 
@@ -84,6 +94,8 @@ int ListRemove(List *list, size_t pos);
 int ListDump_(List *list, const char *reason, callInfo info);
 
 int ListError(List *list);
+
+int writeErrToFile(FILE *file, int err);
 
 #define ASSERT_OK(list)                            \
     do {                                            \
