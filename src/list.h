@@ -18,6 +18,8 @@
     fprintf(stderr, "file \"%s\", line %d, function \"%s()\"\n", __FILE__, __LINE__, __FUNCTION_NAME__);  \
 }                                                                                                           \
 
+#define STRINGIFY(name) #name
+
 typedef long long elem_t;
 
 static const char *typeName = "long long";
@@ -47,6 +49,7 @@ struct List {
 };
 
 enum ListError : int {
+    NO_ERR = 0,
     ERR_NOMEM = 1,
     ERR_OVFLOW = 2,
     ERR_INV_POS = 3,
@@ -62,6 +65,23 @@ enum ListError : int {
     ERR_INV_NEXT = 13,
 };
 
+static const char *errorStrs[] = {
+    STRINGIFY(NO_ERR),
+    STRINGIFY(ERR_NOMEM),
+    STRINGIFY(ERR_OVFLOW),
+    STRINGIFY(ERR_INV_POS),
+    STRINGIFY(ERR_DOT_FILE_OPN),
+    STRINGIFY(ERR_FILE_CLS),
+    STRINGIFY(ERR_NULL),
+    STRINGIFY(ERR_NULL_ND),
+    STRINGIFY(ERR_CAP_OVERFL),
+    STRINGIFY(ERR_INV_SIZE),
+    STRINGIFY(ERR_INV_ZERO),
+    STRINGIFY(ERR_INV_HEAD),
+    STRINGIFY(ERR_INV_TAIL),
+    STRINGIFY(ERR_INV_NEXT),
+};
+
 //! Encapsulates info about function call for debug
 struct callInfo {
     const char *funcName; /**< Name of the calling function */
@@ -73,13 +93,13 @@ int ListCtor_(List *list, size_t capacity, callInfo info);
 
 void ListDtor(List *list);
 
-int ListSort_VERY_SLOWWWWWWWWWWWWWWWWWW(List *list);
+int ListSort(List *list);
 
 int ListResize(List *list, size_t newCap);
 
-size_t ListLogicalToPhysicalIdx_DONT_CALL_SLOW_ASF(List *list, size_t idx);
+size_t ListLogicalToPhysicalIdx(List *list, size_t idx);
 
-size_t ListFindElem_SLOWWOLSSLOW(List *list, elem_t value);
+size_t ListFindElem(List *list, elem_t value);
 
 int ListInsertFront(List *list, elem_t value);
 
@@ -93,13 +113,13 @@ int ListRemove(List *list, size_t pos);
 
 int ListDump_(List *list, const char *reason, callInfo info);
 
-int ListError(List *list);
+int ListErrorCheck(List *list);
 
-int writeErrToFile(FILE *file, int err);
+void writeListErrToFile(FILE *file, int err);
 
 #define ASSERT_OK(list)                            \
     do {                                            \
-        int ret = ListError(list);                \
+        int ret = ListErrorCheck(list);                \
         if (ret != 0) {                             \
             ListDump(list, "ASSERT_OK failed");   \
             assert(!"Invariant failure");           \

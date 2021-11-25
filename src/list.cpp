@@ -11,8 +11,6 @@ int ListCtor_(List *list, size_t capacity, callInfo info) {
     assert(list->head == 0);
     assert(list->tail == 0);
 
-    system("rm -rf dumps\n");
-
     list->nodes = (node_t *)calloc((capacity + 1), sizeof(node_t));
 
     if (!list->nodes) {
@@ -59,7 +57,7 @@ void ListDtor(List *list) {
     list->capacity = LST_SIZE_POISON;
 }
 
-int ListSort_VERY_SLOWWWWWWWWWWWWWWWWWW(List *list) {
+int ListSort(List *list) {
     ASSERT_OK(list);
 
     node_t *newNodes = (node_t *)calloc(list->capacity + 1, sizeof(node_t));
@@ -140,7 +138,7 @@ int ListResize(List *list, size_t newCap) {
     return 0;
 }
 
-size_t ListLogicalToPhysicalIdx_DONT_CALL_SLOW_ASF(List *list, size_t idx) {
+size_t ListLogicalToPhysicalIdx(List *list, size_t idx) {
     ASSERT_OK(list);
 
     if (idx >= list->size) {
@@ -161,7 +159,7 @@ size_t ListLogicalToPhysicalIdx_DONT_CALL_SLOW_ASF(List *list, size_t idx) {
     return cur;
 }
 
-size_t ListFindElem_SLOWWOLSSLOW(List *list, elem_t value) {
+size_t ListFindElem(List *list, elem_t value) {
     ASSERT_OK(list);
 
     size_t cur = list->head;
@@ -171,6 +169,7 @@ size_t ListFindElem_SLOWWOLSSLOW(List *list, elem_t value) {
             ASSERT_OK(list);
             return cur;
         }
+        cur = list->nodes[cur].next;
     }
     
     ASSERT_OK(list);
@@ -351,7 +350,7 @@ int ListRemove(List *list, size_t pos) {
     return 0;
 }
 
-int ListError(List *list) {
+int ListErrorCheck(List *list) {
     if (!list) {
         return ERR_NULL;
     } 
@@ -399,49 +398,8 @@ int ListError(List *list) {
     return 0;
 }
 
-int writeErrToFile(FILE *file, int err) {
-    int res = 0;
-    switch (err) {
-        case ERR_NULL:
-            res = fprintf(file, "ERR_NULL");
-            break;
-
-        case ERR_INV_POS:
-            res = fprintf(file, "ERR_INV_POS");
-            break;
-            
-        case ERR_NULL_ND:
-            res = fprintf(file, "ERR_NULL_NODES");
-            break;
-
-        case ERR_CAP_OVERFL:
-            res = fprintf(file, "ERR_CAPACITY_OVERFLOW");
-            break;
-            
-        case ERR_INV_SIZE:
-            res = fprintf(file, "ERR_INVALID_SIZE");
-            break;
-
-        case ERR_INV_ZERO:
-            res = fprintf(file, "ERR_INVALID_ZERO_ELEM");
-            break;
-
-        case ERR_INV_HEAD:
-            res = fprintf(file, "ERR_INVALID_HEAD");
-            break;
-
-        case ERR_INV_TAIL:
-            res = fprintf(file, "ERR_INVALID_TAIL");
-            break;
-
-        case ERR_INV_NEXT:
-            res = fprintf(file, "ERR_INVALID_NEXT");
-            break;
-
-        default:
-            res = fprintf(file, "UNDEFINED ERROR");
-    }
-    return res;
+void writeListErrToFile(FILE *file, int err) {
+    fprintf(file, "%s", errorStrs[err]);
 }
 
 int ListDump_(List *list, const char *reason, callInfo info) {
@@ -459,7 +417,7 @@ int ListDump_(List *list, const char *reason, callInfo info) {
         return ERR_DOT_FILE_OPN;
     }
 
-    int errCode = ListError(list);
+    int errCode = ListErrorCheck(list);
 
     fprintf(dotFile, "digraph list{\n"
                     "{\nrankdir=LR;\n"
@@ -473,7 +431,7 @@ int ListDump_(List *list, const char *reason, callInfo info) {
 
     } else {
         fprintf(dotFile, "Error ");
-        writeErrToFile(dotFile, errCode);
+        writeListErrToFile(dotFile, errCode);
         fprintf(dotFile, "\n");
     }
 
