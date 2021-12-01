@@ -53,6 +53,7 @@ void ListDtor(List *list) {
     ASSERT_OK(list);
 
     free(list->nodes);
+    list->nodes = nullptr;
     list->head = LST_SIZE_POISON;
     list->tail = LST_SIZE_POISON;
     list->free = LST_SIZE_POISON;
