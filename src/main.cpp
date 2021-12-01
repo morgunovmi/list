@@ -22,7 +22,7 @@ int main() {
 
     ListSort(&lst);
 
-    for (long long i = 10; i < 25; i++) {
+    for (long long i = 10; i < 10; i++) {
         ListInsertBack(&lst, i);
     } 
 
@@ -39,25 +39,17 @@ int main() {
     ListRemove(&lst, 5);
     ListDump(&lst, "Dumb dump 2");
 
-    for (size_t i = 1; i < 50; i++) {
-        printf("%zu\n", i);
+    for (size_t i = 1; i < 10; i++) {
         ListInsertAfter(&lst, 
                 ListLogicalToPhysicalIdx(&lst, rand() % lst.size), rand());
         ListInsertBefore(&lst, 
                 ListLogicalToPhysicalIdx(&lst, rand() % lst.size), rand());
     }
-    printf("Removing \n");
-    printf("\n");
-    printf("\n");
-    printf("\n");
-    printf("\n");
-    printf("\n");
-    printf("\n");
-    printf("\n");
-    for (size_t i = 1; i < 20; i++) {
-        printf("%zu\n", i);
+
+    for (size_t i = 1; i < 10; i++) {
         ListRemove(&lst, ListLogicalToPhysicalIdx(&lst, rand() % lst.size));
     }
+
     ListDump(&lst, "Dumb dump 3");
 
     ListSort(&lst);

@@ -11,6 +11,8 @@ int ListCtor_(List *list, size_t capacity, callInfo info) {
     assert(list->head == 0);
     assert(list->tail == 0);
 
+    system("rm -rf dumps");
+
     list->nodes = (node_t *)calloc((capacity + 1), sizeof(node_t));
 
     if (!list->nodes) {
@@ -22,12 +24,12 @@ int ListCtor_(List *list, size_t capacity, callInfo info) {
     list->nodes[0].next = 0;
     list->nodes[0].prev = 0;
 
-    for (size_t i = 1; i < capacity; i++) {
+    for (size_t i = 1; i < capacity + 1; i++) {
         list->nodes[i].prev = LST_SIZE_POISON;
         list->nodes[i].next = i + 1;
     }
 
-    list->nodes[capacity - 1].next = 0;
+    list->nodes[capacity].next = 0;
 
     list->head = LST_SIZE_POISON; 
     list->tail = LST_SIZE_POISON; 
@@ -35,6 +37,7 @@ int ListCtor_(List *list, size_t capacity, callInfo info) {
     list->free = 1;
     list->size = 0;
     list->capacity = capacity;
+    list->isSorted = true;
 
     list->ctorCallFuncName = info.funcName;
     list->ctorCallFile = info.file;
@@ -84,7 +87,7 @@ int ListSort(List *list) {
 
     list->free = list->size + 1;
 
-    for (++newIdx; newIdx < list->capacity - 1; newIdx++) {
+    for (++newIdx; newIdx < list->capacity; newIdx++) {
         newNodes[newIdx].next = newIdx + 1;
         newNodes[newIdx].prev = LST_SIZE_POISON;
     } 
@@ -115,20 +118,29 @@ int ListResize(List *list, size_t newCap) {
         return ERR_NOMEM;
     }
 
-    list->free = list->capacity;
-    newNodes[list->free].next = list->capacity + 1;
+    if (list->capacity == 1) {
+        list->free = 2;
+        newNodes[list->free].next = 0;
 
-    size_t i = list->capacity;
+        newNodes[2].data = 0;
+        newNodes[2].prev = LST_SIZE_POISON;
+    } else {
 
-    for (; i < newCap - 1; i++) {
+        list->free = list->capacity + 1;
+        newNodes[list->free].next = list->capacity + 2;
+
+        size_t i = list->capacity + 1;
+
+        for (; i < newCap; i++) {
+            newNodes[i].data = 0;
+            newNodes[i].prev = LST_SIZE_POISON;
+            newNodes[i].next = i + 1;
+        }
+
         newNodes[i].data = 0;
         newNodes[i].prev = LST_SIZE_POISON;
-        newNodes[i].next = i + 1;
+        newNodes[i].next = 0;
     }
-
-    newNodes[i].data = 0;
-    newNodes[i].prev = LST_SIZE_POISON;
-    newNodes[i].next = 0;
 
     list->nodes = newNodes;
 
@@ -371,7 +383,7 @@ int ListErrorCheck(List *list) {
         return ERR_INV_ZERO;
     }
     
-    for (size_t i = 1; i < list->capacity; i++) {
+    for (size_t i = 1; i < list->capacity + 1; i++) {
         if (list->nodes[i].next == LST_SIZE_POISON) {
             return ERR_INV_NEXT;
         }
@@ -445,27 +457,32 @@ int ListDump_(List *list, const char *reason, callInfo info) {
             (void *)list->nodes, list->head, list->tail, list->free, list->size,
             list->capacity, list->isSorted);
 
-    for (size_t i = 0; i < list->capacity; i++) {
+    for (size_t i = 0; i < list->capacity + 1; i++) {
         fprintf(dotFile, "node%zu [shape=record, label=\"{data\\n%lld |"
                 "index\\n%zu} | next\\n%zu | prev\\n%zu\"];", i, 
                 list->nodes[i].data, i, list->nodes[i].next, list->nodes[i].prev);
     }
 
     fprintf(dotFile, "\n{\nedge[color=white];\n");
-    for (size_t i = 0; i < list->capacity - 1; i++) {
+    for (size_t i = 0; i < list->capacity; i++) {
         fprintf(dotFile, "node%zu -> node%zu;\n", i, i+1); 
     }
     fprintf(dotFile, "}\n");
 
-    fprintf(dotFile, "data:<head> -> node%zu[color=\"green\", label=\"head\"];\n", list->head);
-    fprintf(dotFile, "data:<tail> -> node%zu[color=\"red\", label=\"tail\"];\n", list->tail);
-    fprintf(dotFile, "data:<free> -> node%zu[color=\"yellow\", label=\"free\"];\n", list->free);
+    fprintf(dotFile, "data:<head> -> node%zu[color=\"green\", label=\"head\"];\n",
+            list->head);
+    fprintf(dotFile, "data:<tail> -> node%zu[color=\"red\", label=\"tail\"];\n",
+            list->tail);
+    fprintf(dotFile, "data:<free> -> node%zu[color=\"yellow\", label=\"free\"];\n",
+            list->free);
 
-    for (size_t i = 1; i < list->capacity; i++) {
-        fprintf(dotFile, "node%zu -> node%zu[label=\"next\"];\n", i, list->nodes[i].next); 
+    for (size_t i = 1; i < list->capacity + 1; i++) {
+        fprintf(dotFile, "node%zu -> node%zu[label=\"next\"];\n", i,
+                list->nodes[i].next); 
 
         if (list->nodes[i].prev != LST_SIZE_POISON) {
-            fprintf(dotFile, "node%zu -> node%zu[label=\"prev\"];\n", i, list->nodes[i].prev); 
+            fprintf(dotFile, "node%zu -> node%zu[label=\"prev\"];\n", i,
+                    list->nodes[i].prev); 
         }
     }
 
