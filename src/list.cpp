@@ -34,7 +34,7 @@ int ListCtor_(List *list, size_t capacity, callInfo info) {
     list->head = LST_SIZE_POISON; 
     list->tail = LST_SIZE_POISON; 
 
-    list->free = 1;
+    list->free = capacity == 0 ? 0 : 1;
     list->size = 0;
     list->capacity = capacity;
     list->isSorted = true;
@@ -110,6 +110,10 @@ int ListSort(List *list) {
 
 int ListResize(List *list, size_t newCap) {
     ASSERT_OK(list);
+    printf("Capacity : %zu\n", list->capacity);
+    printf("Resizing to : %zu\n", newCap);
+
+    ListDump(list, "before_resize");
 
     node_t *newNodes = (node_t *)realloc(list->nodes,
             sizeof(node_t) * (newCap + 1));
@@ -119,33 +123,25 @@ int ListResize(List *list, size_t newCap) {
         return ERR_NOMEM;
     }
 
-    if (list->capacity == 1) {
-        list->free = 2;
-        newNodes[list->free].next = 0;
+    list->free = list->capacity + 1;
 
-        newNodes[2].data = 0;
-        newNodes[2].prev = LST_SIZE_POISON;
-    } else {
+    size_t i = list->capacity + 1;
 
-        list->free = list->capacity + 1;
-        newNodes[list->free].next = list->capacity + 2;
-
-        size_t i = list->capacity + 1;
-
-        for (; i < newCap; i++) {
-            newNodes[i].data = 0;
-            newNodes[i].prev = LST_SIZE_POISON;
-            newNodes[i].next = i + 1;
-        }
-
+    for (; i < newCap; i++) {
         newNodes[i].data = 0;
         newNodes[i].prev = LST_SIZE_POISON;
-        newNodes[i].next = 0;
+        newNodes[i].next = i + 1;
     }
+
+    newNodes[i].data = 0;
+    newNodes[i].prev = LST_SIZE_POISON;
+    newNodes[i].next = 0;
 
     list->nodes = newNodes;
 
     list->capacity = newCap;
+
+    ListDump(list, "after_resize");
 
     ASSERT_OK(list);
     return 0;
@@ -193,7 +189,7 @@ int ListInsertFront(List *list, elem_t value) {
     ASSERT_OK(list);
 
     if (list->free == 0) {
-        if (ListResize(list, list->capacity * 2) != 0) {
+        if (ListResize(list, list->capacity * 2 + 1) != 0) {
             return ERR_NOMEM;
         }
     }
@@ -224,7 +220,7 @@ int ListInsertBack(List *list, elem_t value) {
     ASSERT_OK(list);
 
     if (list->free == 0) {
-        if (ListResize(list, list->capacity * 2) != 0) {
+        if (ListResize(list, list->capacity * 2 + 1) != 0) {
             return ERR_NOMEM;
         }
     }
@@ -266,7 +262,7 @@ int ListInsertAfter(List *list, size_t pos, elem_t value) {
 
     } else {
         if (list->free == 0) {
-            if (ListResize(list, list->capacity * 2) != 0) {
+            if (ListResize(list, list->capacity * 2 + 1) != 0) {
                 return ERR_NOMEM;
             }
         }
@@ -303,7 +299,7 @@ int ListInsertBefore(List *list, size_t pos, elem_t value) {
 
     } else {
         if (list->free == 0) {
-            if (ListResize(list, list->capacity * 2) != 0) {
+            if (ListResize(list, list->capacity * 2 + 1) != 0) {
                 return ERR_NOMEM;
             }
         }

@@ -7,7 +7,7 @@ int main() {
 
     List lst = {};
 
-    ListCtor(&lst, 10);
+    ListCtor(&lst, 0);
 
     ListDump(&lst, "start");
 
