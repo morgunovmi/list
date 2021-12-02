@@ -16,7 +16,8 @@ int ListCtor_(List *list, size_t capacity, callInfo info) {
     list->nodes = (node_t *)calloc((capacity + 1), sizeof(node_t));
 
     if (!list->nodes) {
-        PRINT_ERROR("Error allocating memory for the list : %s\n", strerror(errno));
+        PRINT_ERROR("Error allocating memory for the list : %s\n", 
+                strerror(errno));
         return ERR_NOMEM; 
     }
 
@@ -67,7 +68,8 @@ int ListSort(List *list) {
     node_t *newNodes = (node_t *)calloc(list->capacity + 1, sizeof(node_t));
 
     if (!newNodes) {
-        PRINT_ERROR("Error allocating memory for the new list : %s\n", strerror(errno));
+        PRINT_ERROR("Error allocating memory for the new list : %s\n", 
+                strerror(errno));
         return ERR_NOMEM;
     }
 
@@ -119,7 +121,8 @@ int ListResize(List *list, size_t newCap) {
             sizeof(node_t) * (newCap + 1));
 
     if (!newNodes) {
-        PRINT_ERROR("Error allocating memory for the new list : %s\n", strerror(errno));
+        PRINT_ERROR("Error allocating memory for the new list : %s\n", 
+                strerror(errno));
         return ERR_NOMEM;
     }
 
@@ -449,8 +452,10 @@ int ListDump_(List *list, const char *reason, callInfo info) {
                              list->ctorCallFuncName,
 							 list->ctorCallFile, list->ctorCallLine, reason);
 
-    fprintf(dotFile, "data [shape=record, label=\"{nodes | head | tail | free | size |"
-            "capacity | isSorted } | { %p | <head> %zu | <tail> %zu | <free> %zu | %zu | %zu | %d }\"];",
+    fprintf(dotFile, "data [shape=record, label=\""
+            "{nodes | head | tail | free | size |"
+            "capacity | isSorted } |"
+           " { %p | <head> %zu | <tail> %zu | <free> %zu | %zu | %zu | %d }\"];",
             (void *)list->nodes, list->head, list->tail, list->free, list->size,
             list->capacity, list->isSorted);
 
@@ -490,7 +495,8 @@ int ListDump_(List *list, const char *reason, callInfo info) {
     }
 
     char command[128] = "";
-    sprintf(command, "dot -Tjpg %s -o dumps/dump%zu.jpg", dotFileName, list->dumpNum);
+    sprintf(command, "dot -Tjpg %s -o dumps/dump%zu.jpg",
+            dotFileName, list->dumpNum);
     system(command);
     sprintf(command, "rm %s\n", dotFileName);
     system(command);
