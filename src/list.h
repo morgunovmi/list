@@ -22,30 +22,34 @@
 
 typedef long long elem_t;
 
+//! String of the type name for dumping
 static const char *typeName = "long long";
 
+//! Value to insert into invalid elements
 const size_t LST_SIZE_POISON = SIZE_MAX;
 
+//! Defines the list node type
 struct node_t {
     elem_t data;
     size_t next;
     size_t prev;
 };
 
+//! Doubly linked array-based list
 struct List {
-    node_t *nodes;
-    size_t head;
-    size_t tail;
-    size_t free;
-    size_t size;
-    size_t capacity;
-    bool isSorted;
+    node_t *nodes; /**< Array of list nodes */
+    size_t head; /**< Index of first list element */
+    size_t tail; /**< Index of last list element */ 
+    size_t free; /**< Index of the first free list element */
+    size_t size; /**< Current number of elements in the list */
+    size_t capacity; /**< Full capacity of the node array */
+    bool isSorted; /**< Signifies if the list is currently sorted, i.e. elements are placed conguously in the beginning of the list */
 
     const char *ctorCallFuncName; /**< Function that called the stack constructor */
     const char *ctorCallFile; /**< File of the constructor call */
     int ctorCallLine; /**< Line of the constructor call */
 
-    size_t dumpNum;
+    size_t dumpNum; /**< Current dump number */
 };
 
 enum ListError : int {
@@ -92,6 +96,14 @@ struct callInfo {
 int ListCtor_(List *list, size_t capacity, callInfo info);
 
 void ListDtor(List *list);
+
+typedef int (*compFunc)(const void *, const void *);
+
+typedef void (*sortFunc)(void *, size_t, size_t, compFunc);
+
+int ListNodeComp(const void *lhs, const void *rhs);
+
+int ListSortByValue(List *list, sortFunc); 
 
 int ListSort(List *list);
 

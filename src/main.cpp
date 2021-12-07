@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "list.h"
+#include "heapsort.h"
 
 int main() {
 
@@ -9,12 +10,17 @@ int main() {
 
     ListCtor(&lst, 0);
 
-    ListDump(&lst, "start");
-
     for (long long i = 1; i < 10; i++) {
-        ListInsertFront(&lst, i);
+        ListInsertFront(&lst, rand() % 100);
     } 
 
+    ListDump(&lst, "before sort");
+
+    ListSortByValue(&lst, myHeapSort); 
+
+    ListDump(&lst, "sorted");
+
+    /*
     ListDump(&lst, "main 1");
 
     ListRemove(&lst, 3);
@@ -55,5 +61,6 @@ int main() {
     ListSort(&lst);
     ListDump(&lst, "After sort");
 
+    */
     ListDtor(&lst);
 }

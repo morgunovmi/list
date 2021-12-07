@@ -62,6 +62,21 @@ void ListDtor(List *list) {
     list->capacity = LST_SIZE_POISON;
 }
 
+int ListNodeComp(const void *lhs, const void *rhs) {
+    return (*(const node_t *)lhs).data - (*(const node_t *)rhs).data;
+}
+
+int ListSortByValue(List *list, sortFunc sort) {
+    ASSERT_OK(list);
+
+    ListSort(list);
+
+    sort(list->nodes + 1, list->size, sizeof(node_t), &ListNodeComp); 
+
+    ASSERT_OK(list);
+    return 0;
+} 
+
 int ListSort(List *list) {
     ASSERT_OK(list);
 
@@ -112,10 +127,6 @@ int ListSort(List *list) {
 
 int ListResize(List *list, size_t newCap) {
     ASSERT_OK(list);
-    printf("Capacity : %zu\n", list->capacity);
-    printf("Resizing to : %zu\n", newCap);
-
-    ListDump(list, "before_resize");
 
     node_t *newNodes = (node_t *)realloc(list->nodes,
             sizeof(node_t) * (newCap + 1));
@@ -143,8 +154,6 @@ int ListResize(List *list, size_t newCap) {
     list->nodes = newNodes;
 
     list->capacity = newCap;
-
-    ListDump(list, "after_resize");
 
     ASSERT_OK(list);
     return 0;
